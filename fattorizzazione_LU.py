@@ -21,7 +21,7 @@ def triang_sup(a, b, tol=1e-15):
     if r != np.size(b):
         raise Exception("Numero di equazini diverso dal numero di termini noti")
 
-    x = np.zeros((r, 1))
+    x = np.zeros(r)
 
     for i in range(r-1, -1, -1):
         if abs(a[i][i]) < tol:
@@ -57,7 +57,7 @@ def triang_inf(a, b, tol=1e-15):
     if r != np.size(b):
         raise Exception("Numero di equazini diverso dal numero di termini noti")
     
-    x = np.zeros((r, 1))
+    x = np.zeros(r)
     
     for i in range(0, r):
         if abs(a[i][i]) < tol:
@@ -128,22 +128,16 @@ def gauss_max_pivot_par(a_, b_):
     b = np.copy(b_)
         
     for k in range(n-1):
-        s = k
-        piv = abs(a[k][k])
-        for i in range(k+1, n):
-            if abs(a[i][k]) > piv:
-                s = i
-                piv = abs(a[i][k])
-        if s != k:
-            a[[k, s]] = a[[s, k]]
-            b[[k, s]] = b[[s, k]]
+        max_row_index = np.argmax(abs(a[k:n, k])) + k
+        a[[k, max_row_index]] = a[[max_row_index, k]]
+        b[[k, max_row_index]] = b[[max_row_index, k]]
             
         for i in range(k+1, n):
             m = -(a[i][k]/a[k][k])
             for j in range(k+1, n):
-                a[i][j] = a[i][j]+(m*a[k][j])
+                a[i][j] += (m*a[k][j])
             
-            b[i] = b[i]+(m*b[k])
+            b[i] += (m*b[k])
                     
     
     return np.triu(a), b
@@ -184,14 +178,51 @@ def fattlu_pivot(m):
     np.fill_diagonal(l, 1)
     return p, l, np.triu(a)
 
-def main():
-    a = np.array([[2,1,0,-1],[-2,-2,1,-1],[4,2,-1,-1],[0,2,-3,2]], float)
-    #a = np.array([[1, 2, 4], [2, 1, 3], [3, 2, 4]], float)
+
+def matrice_inversa_lu(m):
+    """Funzione che permette il calcolo dell'inversa attraverso la fattorizzazione LU
+
+    Args:
+        m (matrice di float): matrice di cui calcolare l'inversa
+
+    Raises:
+        Exception: eccezione generica in caso di matrice non quadrata
+
+    Returns:
+        z: matrice inversa di m
+    """
+    n = m.shape[0]
+    if n != m.shape[1]:
+        raise Exception("Matrice non quadrata")
     
-    [p, l, u] = fattlu_pivot(a)
-    print(p, "\n")
-    print(l, "\n")
-    print(u, "\n")
+    a = np.copy(m)
+    id = np.identity(n)
+    for k in range(n-1):
+        max_row_index = np.argmax(abs(a[k:n, k])) + k
+        a[[k, max_row_index]] = a[[max_row_index, k]]
+        id[[k, max_row_index]] = id[[max_row_index, k]]
+            
+        for i in range(k+1, n):
+            m = -(a[i][k]/a[k][k])
+            for j in range(k+1, n):
+                a[i][j] += (m*a[k][j])
+            
+            for j in range(0, n):
+                id[i][j] += (m*id[k][j])
+    
+    z = np.zeros((n, n))
+    for i in range(n):
+        z[:, i] = triang_sup(a, id[:, i])
+    
+    return z
+
+def main():
+    #a = np.array([[1, -1, 0], [2, 1, -1], [0, -2, 1]], float)
+    a = np.array([[0, -1, 2], [1, 0, -1], [0, 1, 0]])
+    print(a, "\n================================")
+    x = matrice_inversa_lu(a)
+    print(x, "\n")
+    print(a.dot(x))
     
     return
 
