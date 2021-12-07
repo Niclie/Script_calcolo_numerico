@@ -149,9 +149,6 @@ def fattlu_pivot(m):
     Args:
         m (matrice di float): matrice da fattorizzare
 
-    Raises:
-        Exception: eccezione generica in caso matrice non quadrata
-
     Returns:
         matrice di 0 e 1: matrice di permutazione
         matrice di float: matrice triangolare inferiore speciale L
@@ -159,9 +156,6 @@ def fattlu_pivot(m):
     """
     
     n = m.shape[0]
-    if n != m.shape[1]:
-        raise Exception("Matrice non quadrata")
-    
     p = np.arange(0, n)
     a = np.copy(m)
     for k in range(n-1):
